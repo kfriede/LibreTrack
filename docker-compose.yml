@@ -1,20 +1,26 @@
 version: '3.4'
 services:
-  server:
+  libretrack:
+    container_name: libretrack
+    restart: unless-stopped
     build:
       context: .
     ports:
-      - '5000:5000'
-    volumes: 
-      - './:/app'
+      - '42069:5000'
     environment: 
       # set environment variables
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       REDISTOGO_URL: http://redis:6379
       DEV_DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       TEST_DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    networks:
+      - libretrack
   
   worker:
+    container_name: worker
+    restart: unless-stopped
     build:
       dockerfile: Dockerfile.worker
       context: .
@@ -26,24 +32,40 @@ services:
       DEV_DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       TEST_DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    networks:
+      - libretrack
 
   postgres:
     image: postgres
+    container_name: postgres
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: example
-      POSTGRES_DB: mydatabase
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-    - db-data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - libretrack
+
   adminer:
     image: adminer
-    restart: always
+    container_name: adminer
+    restart: unless-stopped
     ports:
-      - 8080:8080
+      - 42096:8080
+    networks:
+      - libretrack
 
   redis:
-    image:
-      redis:6-alpine
+    image: redis:6-alpine
+    container_name: redis
+    restart: unless-stopped
+    networks:
+      - libretrack
 
 volumes:
   db-data:
+
+networks:
+  libretrack:
