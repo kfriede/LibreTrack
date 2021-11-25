@@ -17,6 +17,7 @@ ENV PYTHONIOENCODING=UTF-8
 RUN pip3 install sqlalchemy_utils flask_dance flask_caching python-gitlab
 
 COPY . /app
+RUN chmod +x /app/init_database.sh
 
 #RUN python3 manage.py recreate_db && python3 manage.py setup_dev && python3 manage.py add_fake_data
 
